@@ -1,0 +1,130 @@
+#include <iostream>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+#include "mpi.h" // message passing interface
+using namespace std;
+
+// Do this ONCE when you start up thomas
+// module load openmpi-x86_64
+
+// New compile and run commands for MPI!
+// mpicxx -o blah file.cpp
+// mpirun -np 32 blah
+
+int main (int argc, char * argv[]) {
+
+	int my_rank;			// my CPU number for this process
+	int p;					// number of CPUs that we have
+	int source;				// rank of the sender
+	int dest;				// rank of destination
+	int tag = 0;			// message number
+	char message[100];		// message itself
+	MPI_Status status;		// return status for receive
+	
+	// Start MPI
+	MPI_Init(&argc, &argv);
+	
+	// Find out my rank!
+	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
+	
+	// Find out the number of processes!
+	MPI_Comm_size(MPI_COMM_WORLD, &p);
+	
+	// THE REAL PROGRAM IS HERE
+
+	srand(time(0));
+	// Double Rings
+	if (my_rank == 0) 
+		sprintf(message, "baton 0");
+	if (my_rank == 0) {
+		cout << my_rank << " is passing a message to 2." << endl;
+		MPI_Send(message, strlen(message)+1, MPI_CHAR, 2, tag, MPI_COMM_WORLD);
+		MPI_Recv(message, 100, MPI_CHAR, p - 2 + (p % 2), tag, MPI_COMM_WORLD, &status);
+	}
+	else {
+		if (my_rank % 2 == 0){
+			MPI_Recv(message, 100, MPI_CHAR, (my_rank-2), tag, MPI_COMM_WORLD, &status);
+			cout << my_rank << " is passing a message to " << (my_rank + 2) % (p+(p%2)) << "." << endl;
+			MPI_Send(message, strlen(message)+1, MPI_CHAR, (my_rank + 2) % (p+(p%2)), tag, MPI_COMM_WORLD);
+		}
+	}
+	if (my_rank == 1) 
+		sprintf(message, "baton 1");
+	if (my_rank == 1) {
+		cout << my_rank << " is passing a message to " << (p - 1 - (p%2)) << "." << endl;
+		MPI_Send(message, strlen(message)+1, MPI_CHAR, (p - 1 - (p%2)), tag, MPI_COMM_WORLD);
+		MPI_Recv(message, 100, MPI_CHAR, 3, tag, MPI_COMM_WORLD, &status);
+	}	
+	else {
+		if (my_rank % 2 == 1){
+			if (my_rank == (p-2) || my_rank == (p-1)){
+				MPI_Recv(message, 100, MPI_CHAR, 1, tag, MPI_COMM_WORLD, &status);
+				cout << my_rank << " is passing a message to " << ((my_rank - 2) % p)<< "." << endl;
+				MPI_Send(message, strlen(message)+1, MPI_CHAR, (my_rank - 2) % p, tag, MPI_COMM_WORLD);
+			}
+			else{
+				MPI_Recv(message, 100, MPI_CHAR, (my_rank + 2), tag, MPI_COMM_WORLD, &status);
+				cout << my_rank << " is passing a message to " << ((my_rank - 2) % p) << "." << endl;
+				MPI_Send(message, strlen(message)+1, MPI_CHAR, (my_rank - 2) % p, tag, MPI_COMM_WORLD);
+			}
+		}
+	}
+	//Min, Max, Average
+	double num = 10000 * p;
+	int size = 10000 * p;
+	int a[size];
+	int maximum = 0;
+	int minimum = 0;
+	int sum = 0;
+	double average = 0;
+	
+	if (my_rank == 0) {
+		for (int x = 0; x < size; x++) {
+			a[x] = 1 + rand () % (100); //Random foot size 1-100 (Foot size 0 makes no sense)
+		}
+	}
+	
+	int local_n = size/p;
+	int local_a[local_n];
+	
+	MPI_Scatter(&a, local_n, MPI_INT, &local_a, local_n, MPI_INT, 0, MPI_COMM_WORLD);
+	
+	for (int x = 0; x < (local_n-1); x++){
+		for (int y = x+1; y < local_n; y++) {
+			if (local_a[x] > local_a[y]) {
+				int temp = local_a[x];
+				local_a[x] = local_a[y];
+				local_a[y] = temp;
+			}
+		}
+	}
+	
+	int local_min = local_a[0];
+	MPI_Reduce (&local_min, &minimum, 1, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+	if (my_rank == 0)
+		cout << "Your minimum is " << minimum << endl;
+	
+	int local_max = local_a[local_n-1];
+	MPI_Reduce (&local_max, &maximum, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+	if (my_rank == 0)	
+		cout <<"Your maximum is " << maximum << endl;
+	
+	int local_sum = 0;
+	for (int x = 0; x < local_n; x++) {
+		local_sum += local_a[x];
+	}
+	MPI_Reduce (&local_sum, &sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+	if (my_rank == 0){
+		cout << "The sum of the numbers in your array is " << sum << endl; //Using this to see if sum is correct for average each time
+		cout << "You have " << num << " numbers in your array." << endl;
+		average = sum/num; 
+		cout <<"So your average is " <<average << endl;
+	}
+		
+	// Shut down MPI
+	MPI_Finalize();
+
+	return 0;
+}

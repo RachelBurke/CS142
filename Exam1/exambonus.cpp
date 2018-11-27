@@ -1,3 +1,5 @@
+// This was a bonus question on an exam. The program had to take in a three digit number and sum the digits together.
+
 #include <iostream>
 using namespace std;
 

@@ -8,7 +8,7 @@ This repository contains files from my CS142 course taken in the Spring of 2016 
 An introduction to programming in a high-level language (assignment, data types, expressions, selection, loops, functions, arrays) including parallel programming for supercomputers. Topics such as AI, software engineering, and databases are also discussed. Prerequisite: MA101 or equivalent. (U)(3)
 
 ## Course Topics
-1. Basic C++ Programming (Read In, Read Out, Variables, Data Types, etc.)
+1. Basic C++ Programming (Read In, Read Out, Variables, Data Types, ASCII, etc.)
 1. Arrays
 1. File Streams
 1. Functions

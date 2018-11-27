@@ -1,4 +1,4 @@
-# CS142 - Introduction to Computer Science - C++ Programming
+# CS142 - Introduction to Computer Science - C++
 **Professor: Dr. Ankur Gupta** </br>
 **Jan - May 2016**
 

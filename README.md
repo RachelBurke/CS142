@@ -17,5 +17,9 @@ An introduction to programming in a high-level language (assignment, data types,
 1. MPI
 
 ## Course Projects
-1. Connect 4
-1. MPI Relay Race
+1. Basic C++ Project (Make Your Own Project - Make a program that demonstrates cout, cin, and variable usage)
+1. If-Else Project (Mr. Rabbit Waiting Project)
+1. Loops Project (Arabic to Roman Numeral Project)
+1. Functions Project (Cashier Project)
+1. Connect 4 (Final Project)
+1. Baton Passing Relay Race (MPI Project)
